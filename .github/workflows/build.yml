@@ -1,0 +1,34 @@
+name: Build and Archive
+
+on:
+  push:
+    branches:
+      - geeks-ios-app
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest
+
+    - name: Install dependencies
+      run: |
+        xcodebuild -resolvePackageDependencies
+
+    - name: Build and export IPA
+      run: |
+        xcodebuild -scheme MusicGeeks -destination generic/platform=iOS archive -archivePath ./build/MusicGeeks.xcarchive
+        xcodebuild -exportArchive -archivePath ./build/MusicGeeks.xcarchive -exportPath ./build -exportOptionsPlist ExportOptions.plist
+
+    - name: Upload IPA
+      uses: actions/upload-artifact@v3
+      with:
+        name: MusicGeeks-app
+        path: ./build/*.ipa
